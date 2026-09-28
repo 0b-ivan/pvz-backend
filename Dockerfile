@@ -13,7 +13,13 @@ COPY --chown=deno:deno public ./public
 
 USER deno
 
-RUN deno cache --lock=deno.lock main.ts
+RUN deno cache --lock=deno.lock main.ts \
+	&& deno eval \
+		--allow-read \
+		--allow-write=/tmp \
+		--allow-net=github.com \
+		--allow-ffi \
+		'import { Database } from "@db/sqlite"; const db = new Database("/tmp/sqlite-prewarm.db"); db.close(); await Deno.remove("/tmp/sqlite-prewarm.db");'
 
 ENV PORT=3000 \
 	DB_PATH=/data/database.db \
@@ -38,7 +44,7 @@ ENV PORT=3000 \
 EXPOSE 3000
 VOLUME ["/data"]
 
-HEALTHCHECK --interval=30s --timeout=3s --start-period=10s --retries=3 \
+HEALTHCHECK --interval=5s --timeout=3s --start-period=5s --retries=3 \
 	CMD ["deno", "eval", "--allow-net=127.0.0.1:3000", "const r = await fetch('http://127.0.0.1:3000/api/health'); if (!r.ok) Deno.exit(1);"]
 
 CMD ["deno", "run", "-P", "main.ts"]
