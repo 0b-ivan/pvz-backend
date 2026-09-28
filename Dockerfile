@@ -41,6 +41,6 @@ EXPOSE 3000
 VOLUME ["/data"]
 
 HEALTHCHECK --interval=5s --timeout=3s --start-period=5s --retries=3 \
-	CMD ["deno", "eval", "--allow-net=127.0.0.1:3000", "const r = await fetch('http://127.0.0.1:3000/api/health'); if (!r.ok) Deno.exit(1);"]
+	CMD ["deno", "eval", "const r = await fetch('http://127.0.0.1:3000/api/health'); if (!r.ok) Deno.exit(1);"]
 
 CMD ["deno", "run", "-P", "main.ts"]
