@@ -15,10 +15,6 @@ USER deno
 
 RUN deno cache --lock=deno.lock main.ts \
 	&& deno eval \
-		--allow-read \
-		--allow-write=/tmp \
-		--allow-net=github.com \
-		--allow-ffi \
 		'import { Database } from "@db/sqlite"; const db = new Database("/tmp/sqlite-prewarm.db"); db.close(); await Deno.remove("/tmp/sqlite-prewarm.db");'
 
 ENV PORT=3000 \
