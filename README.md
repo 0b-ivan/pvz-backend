@@ -97,3 +97,32 @@ The server can be configured using the following environment variables in a `.en
 ## License
 
 This project is licensed under the GNU Affero General Public License v3.0 - see the [LICENSE](LICENSE) file for details.
+
+## Docker
+
+Build the backend image:
+
+```bash
+docker build -t pvz-backend:local .
+```
+
+Run a minimal local instance:
+
+```bash
+docker run --rm \
+  -p 3000:3000 \
+  -v pvz-backend-data:/data \
+  pvz-backend:local
+```
+
+The image runs as the non-root `deno` user. SQLite and uploaded level data live under `/data`, which is the persistent volume boundary intended for Docker and Kubernetes.
+
+The container defaults disable optional external integrations such as GitHub OAuth, Turnstile, OpenAI moderation, Discord/Bluesky logging, and PostHog so that it can boot without secrets. Production deployments should explicitly configure these features with environment variables and Kubernetes Secrets/ConfigMaps.
+
+Health endpoint:
+
+```text
+GET /api/health
+```
+
+For production, override at least `GAME_URL`, `BACKEND_URL`, `ALLOWED_ORIGINS`, and any authentication/integration settings you enable.
