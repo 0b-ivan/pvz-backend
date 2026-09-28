@@ -31,8 +31,7 @@ jobs:
         run: docker volume create pvz-backend-smoke-data
 
       - name: Start backend
-        run: |
-          docker run -d             --name pvz-backend-smoke             -p 13000:3000             -v pvz-backend-smoke-data:/data             pvz-backend:ci
+        run: docker run -d --name pvz-backend-smoke -p 13000:3000 -v pvz-backend-smoke-data:/data pvz-backend:ci
 
       - name: Wait for backend health
         run: |
@@ -57,18 +56,16 @@ jobs:
           exit 1
 
       - name: Smoke test API
-        run: |
-          curl --fail --silent --show-error http://127.0.0.1:13000/api/health
+        run: curl --fail --silent --show-error http://127.0.0.1:13000/api/health
 
       - name: Verify persistent data boundary
         run: |
-          docker exec pvz-backend-smoke deno eval             --allow-read=/data             --allow-write=/data             'const db = await Deno.stat("/data/database.db"); if (!db.isFile) Deno.exit(1); await Deno.writeTextFile("/data/.smoke-persistence", "ok");'
+          docker exec pvz-backend-smoke deno eval 'const db = await Deno.stat("/data/database.db"); if (!db.isFile) Deno.exit(1); await Deno.writeTextFile("/data/.smoke-persistence", "ok");'
 
       - name: Restart with the same volume
         run: |
           docker rm -f pvz-backend-smoke
-
-          docker run -d             --name pvz-backend-smoke             -p 13000:3000             -v pvz-backend-smoke-data:/data             pvz-backend:ci
+          docker run -d --name pvz-backend-smoke -p 13000:3000 -v pvz-backend-smoke-data:/data pvz-backend:ci
 
           for attempt in $(seq 1 30); do
             status="$(docker inspect --format='{{.State.Health.Status}}' pvz-backend-smoke)"
@@ -92,8 +89,7 @@ jobs:
 
       - name: Verify persistence after restart
         run: |
-          docker exec pvz-backend-smoke deno eval             --allow-read=/data             'if ((await Deno.readTextFile("/data/.smoke-persistence")) !== "ok") Deno.exit(1);'
-
+          docker exec pvz-backend-smoke deno eval 'if ((await Deno.readTextFile("/data/.smoke-persistence")) !== "ok") Deno.exit(1);'
           curl --fail --silent --show-error http://127.0.0.1:13000/api/health
 
       - name: Container logs
