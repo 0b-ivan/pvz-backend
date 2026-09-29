@@ -3,9 +3,11 @@ name: Publish container
 on:
   pull_request:
     branches:
+      - staging
       - main
   push:
     branches:
+      - staging
       - main
   workflow_dispatch:
 
